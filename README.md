@@ -10,6 +10,8 @@ This project Learn How To :
 2- ListTile
 3- Custome Chart Bar 
 4- Custome Theme
-5- bottom Sheet
+5- Bottom Sheet
+6- Resposnsive layout 
+7- Adaptive Layout 
 
 
