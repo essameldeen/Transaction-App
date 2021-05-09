@@ -7,16 +7,45 @@ import 'package:intl/intl.dart';
 class NewTransaction extends StatefulWidget {
   final Function addTx;
 
-  NewTransaction(this.addTx);
+  NewTransaction(this.addTx) {
+    print("Constructor newTransactionWidget ");
+  }
 
   @override
-  _NewTransactionState createState() => _NewTransactionState();
+  _NewTransactionState createState() {
+    print("create newTransactionWidget");
+    return _NewTransactionState();
+  }
 }
 
 class _NewTransactionState extends State<NewTransaction> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime _selectedDate;
+
+  _NewTransactionState() {
+    print("Constructor newTransactionState ");
+  }
+
+  @override
+  void initState() {
+    print("initState() ");
+
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant NewTransaction oldWidget) {
+    print("didUpdateWidget() ");
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    print("dispose() ");
+
+    super.dispose();
+  }
 
   void _submitData() {
     final enteredTitle = _titleController.text;
@@ -84,14 +113,14 @@ class _NewTransactionState extends State<NewTransaction> {
                     Platform.isIOS
                         ? CupertinoButton(
                             onPressed: _presentDatePicker,
-                            child: Text(
+                            child: const Text(
                               "Choose Date",
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           )
                         : FlatButton(
                             onPressed: _presentDatePicker,
-                            child: Text(
+                            child: const Text(
                               "Choose Date",
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
@@ -101,7 +130,7 @@ class _NewTransactionState extends State<NewTransaction> {
                 ),
               ),
               RaisedButton(
-                child: Text('Add Transaction'),
+                child: const Text('Add Transaction'),
                 color: Colors.purple,
                 textColor: Colors.white,
                 onPressed: _submitData,

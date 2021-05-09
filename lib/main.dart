@@ -11,41 +11,37 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Platform.isIOS ? CupertinoApp(
-      title: 'Personal Expenses',
-      theme: CupertinoThemeData(
-
-
-
-      ),
-
-
-    ) :MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Personal Expenses',
-      theme: ThemeData(
-          primarySwatch: Colors.purple,
-          accentColor: Colors.amber,
-          errorColor: Colors.red,
-          fontFamily: 'Quicksand',
-          textTheme: ThemeData.light().textTheme.copyWith(
-                title: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-          appBarTheme: AppBarTheme(
-            textTheme: ThemeData.light().textTheme.copyWith(
-                  title: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-          )),
-      home: MyHomePage(),
-    );
+    return Platform.isIOS
+        ? CupertinoApp(
+            title: 'Personal Expenses',
+            theme: CupertinoThemeData(),
+          )
+        : MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Personal Expenses',
+            theme: ThemeData(
+                primarySwatch: Colors.purple,
+                accentColor: Colors.amber,
+                errorColor: Colors.red,
+                fontFamily: 'Quicksand',
+                textTheme: ThemeData.light().textTheme.copyWith(
+                      title: TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                appBarTheme: AppBarTheme(
+                  textTheme: ThemeData.light().textTheme.copyWith(
+                        title: TextStyle(
+                          fontFamily: 'OpenSans',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                )),
+            home: MyHomePage(),
+          );
   }
 }
 
@@ -54,7 +50,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final List<Transaction> _userTransactions = [];
 
   List<Transaction> get _recentTransactions {
@@ -65,6 +61,24 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   void _addNewTransaction(String txTitle, double txAmount, DateTime dateTime) {
@@ -101,32 +115,74 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _valueSwitch = true;
 
+  List<Widget> _buildLandScapeContent(
+      MediaQueryData mediaQuery, AppBar appBar, Widget transactionListWidget) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("Show Chart"),
+          Switch.adaptive(
+              activeColor: Theme.of(context).accentColor,
+              value: _valueSwitch,
+              onChanged: (val) {
+                setState(() {
+                  _valueSwitch = val;
+                });
+              })
+        ],
+      ),
+      _valueSwitch
+          ? Container(
+              height: (mediaQuery.size.height -
+                      appBar.preferredSize.height -
+                      mediaQuery.padding.top) *
+                  0.7,
+              child: Chart(_recentTransactions))
+          : transactionListWidget
+    ];
+  }
+
+  List<Widget> _buildPortaitContent(
+      MediaQueryData mediaQuery, AppBar appBar, Widget transactionListWidget) {
+    return [
+      Container(
+          height: (mediaQuery.size.height -
+                  appBar.preferredSize.height -
+                  mediaQuery.padding.top) *
+              0.3,
+          child: Chart(_recentTransactions)),
+      transactionListWidget
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
+    print("build() HomePage");
     final mediaQuery = MediaQuery.of(context);
     final isLandScape = mediaQuery.orientation == Orientation.landscape;
     final PreferredSizeWidget appBar = Platform.isIOS
         ? CupertinoNavigationBar(
-            middle: Text(
+            middle: const Text(
               'Personal Expenses',
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  child: Icon(CupertinoIcons.add),
+                  child: const Icon(CupertinoIcons.add),
                   onTap: () => _startAddNewTransaction(context),
                 ),
               ],
             ),
           )
         : AppBar(
-            title: Text(
+            title: const Text(
               'Personal Expenses',
             ),
             actions: <Widget>[
               IconButton(
-                icon: Icon(Icons.add),
+                icon: const Icon(Icons.add),
                 onPressed: () => _startAddNewTransaction(context),
               ),
             ],
@@ -141,41 +197,14 @@ class _MyHomePageState extends State<MyHomePage> {
     final pageBody = SafeArea(
       child: SingleChildScrollView(
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (isLandScape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Show Chart"),
-                  Switch.adaptive(
-                      activeColor: Theme.of(context).accentColor,
-                      value: _valueSwitch,
-                      onChanged: (val) {
-                        setState(() {
-                          _valueSwitch = val;
-                        });
-                      })
-                ],
-              ),
+              ..._buildLandScapeContent(
+                  mediaQuery, appBar, transactionListWidget),
             if (!isLandScape)
-              Container(
-                  height: (mediaQuery.size.height -
-                          appBar.preferredSize.height -
-                          mediaQuery.padding.top) *
-                      0.3,
-                  child: Chart(_recentTransactions)),
-            if (!isLandScape) transactionListWidget,
-            if (isLandScape)
-              _valueSwitch
-                  ? Container(
-                      height: (mediaQuery.size.height -
-                              appBar.preferredSize.height -
-                              mediaQuery.padding.top) *
-                          0.7,
-                      child: Chart(_recentTransactions))
-                  : transactionListWidget
+              ..._buildPortaitContent(
+                  mediaQuery, appBar, transactionListWidget),
           ],
         ),
       ),
